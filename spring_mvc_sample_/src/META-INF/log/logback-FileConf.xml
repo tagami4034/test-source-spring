@@ -1,0 +1,146 @@
+<included>
+<!-- ログのファイル出力設定のサンプル -->
+	
+	<if condition='!isDefined("log.FILE_APP.pattern")' >
+		<then>
+			<property scope="context" name="log.FILE_APP.pattern" value="%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n" />
+		</then>
+	</if>
+	<if condition='!isDefined("log.FILE_APP_SQL.pattern")' >
+		<then>
+			<property scope="context" name="log.FILE_APP_SQL.pattern" value="%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n" />
+		</then>
+	</if>
+	<if condition='!isDefined("log.FILE_APP_CONVERT.pattern")' >
+		<then>
+			<property scope="context" name="log.FILE_APP_CONVERT.pattern" value="%d INFO %X{req.path} %X{sec.username}%X{sec.roles} %X{MapFilterMsg}%nopex%n" />
+		</then>
+	</if>
+	
+
+	<appender name="FILE_APP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<!-- フォーマットの例
+	%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n
+	 -->
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>${log.FILE_APP.pattern}</pattern>
+		</encoder>
+		<file>${log.dir}/app.log</file>
+		<!-- 拡張子を.zipにすると圧縮もできる -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>app.%i.log</fileNamePattern>
+			<minIndex>1</minIndex>
+			<maxIndex>5</maxIndex>
+		</rollingPolicy>
+		<!-- ローテートのトリガー設定。ここではサイズを設定 -->
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+	</appender>
+	
+	
+	<appender name="FILE_APP_SQL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<!-- フォーマットの例
+	%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n
+	 -->
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>${log.FILE_APP_SQL.pattern}</pattern>
+		</encoder>
+		<file>${log.dir}/${log.sql}.log</file>
+		<!-- 拡張子を.zipにすると圧縮もできる -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>app.%i.log</fileNamePattern>
+			<minIndex>1</minIndex>
+			<maxIndex>5</maxIndex>
+		</rollingPolicy>
+		<!-- ローテートのトリガー設定。ここではサイズを設定 -->
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+	</appender>
+	
+
+	<appender name="FILE_APP_CONVERT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>${log.FILE_APP_CONVERT.pattern}</pattern>
+		</encoder>
+		<file>${log.dir}/app.log</file>
+		<!-- 拡張子を.zipにすると圧縮もできる -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>app.%i.log</fileNamePattern>
+			<minIndex>1</minIndex>
+			<maxIndex>5</maxIndex>
+		</rollingPolicy>
+		<!-- ローテートのトリガー設定。ここではサイズを設定 -->
+		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<maxFileSize>10MB</maxFileSize>
+		</triggeringPolicy>
+		<!-- 条件にマッチした場合、メッセージの内容を他のメッセージに変換する。 -->
+		<filter class="com.sampletool.common.log.MapFilter">
+			<ConvertMap>
+				org.springframework.jdbc.datasource.DataSourceTransactionManager:Creating new transaction=JDBCトランザクション開始
+				org.springframework.jdbc.datasource.DataSourceTransactionManager:Committing JDBC transaction=JDBCコミット
+				org.springframework.jdbc.datasource.DataSourceTransactionManager:Rolling back JDBC transaction=JDBCロールバック
+				org.springframework.security.web.access.ExceptionTranslationFilter:Access is denied (user is anonymous)=不正アクセス
+				org.springframework.security.web.access.ExceptionTranslationFilter:Access is denied (user is not anonymous)=アクセス不許可
+				org.springframework.security.web.csrf.CsrfFilter:Invalid CSRF token found=CSRFトークン不正
+			</ConvertMap>
+			<OnMismatch>DENY</OnMismatch>
+			<OnMatch>NEUTRAL</OnMatch>
+		</filter>
+	</appender>
+
+
+	<!-- Spring Tx commit/rollback
+	もしコミット・ロールバックのログを出したくない場合はコメントアウトしてください。
+	ログ出力の内容：
+	 Creating new transaction
+	 Committing JDBC transaction 
+	 Rolling back JDBC transaction 
+	-->
+	<logger name="org.springframework.jdbc.datasource.DataSourceTransactionManager" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="FILE_APP_CONVERT"/>
+	</logger>
+	
+	
+	<!-- Spring JDBCのSQLを出力する設定 -->
+	<logger name="org.springframework.jdbc.core.JdbcTemplate" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="FILE_APP_SQL"/>
+	</logger>
+	<logger name="org.springframework.jdbc.core.StatementCreatorUtils" additivity="false">
+		<level value="TRACE" />
+		<appender-ref ref="FILE_APP_SQL"/>
+	</logger>
+	
+	<!-- MyBatis のSQLを出力する設定 
+	 TRACEにすると結果のレコードも表示する。
+	-->
+	<logger name="mybatis.sample" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="FILE_APP_SQL"/>
+	</logger>
+	
+	
+	<!-- SpringSecurity のCSRF対策でトークンチェックのエラーを出力するための設定 
+	CSRF　-> org.springframework.security.web.csrf.CsrfFilter
+				"Invalid CSRF token found"　⇒トークンが不正
+	ACCESS DENY -> org.springframework.security.web.access.ExceptionTranslationFilter
+				"Access is denied (user is anonymous)" ⇒認証なしで認証要の画面にアクセス
+				"Access is denied (user is not anonymous)"　⇒認証はされているが許可のない画面にアクセス
+	-->
+	<logger name="org.springframework.security.web" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="FILE_APP_CONVERT"/>
+	</logger>
+	
+	
+	
+	<root level="INFO">
+		<appender-ref ref="FILE_APP" />
+	</root>
+</included>

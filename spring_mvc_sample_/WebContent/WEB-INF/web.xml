@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+
+	<display-name>Spring Mvc 3.2 Sample Ver1.0</display-name>
+	<welcome-file-list>
+		<welcome-file>top.html</welcome-file>
+    	<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+	
+	
+	
+	<!-- spring用のリスナー（これ書かないとapplicationContext.xmlを読まない） -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+			classpath:/META-INF/spring/web/applicationContext-*.xml
+			classpath:/META-INF/spring/web/spring-security.xml
+			classpath:/META-INF/spring/service/applicationContext-service.xml
+			classpath:/META-INF/spring/dao/mybatis/applicationContext-dao.xml
+		</param-value>
+	</context-param>
+
+
+	
+	<!-- エンコード -->
+	<filter>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>utf-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- ログ出力MDC設定フィルタ -->
+	<filter>
+		<filter-name>CommonMDCInsertingServletFilter</filter-name>
+		<filter-class>com.sampletool.common.log.CommonMDCInsertingServletFilter</filter-class>
+		<init-param>
+			<param-name>putMdcKeys</param-name>
+			<param-value>
+				req.=com.sampletool.common.log.RequestMdcPutter
+				sec.=com.sampletool.common.log.SpringSecurityMdcPutter
+			</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CommonMDCInsertingServletFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	
+	<!-- マルチパートのフィルター設定です（SpringSecurityの前にこのフィルタを通す） 
+	Springの設定ファイル（applicationContext.xml）に
+	bean名を"filterMultipartResolver"にしたMultipartResolverを設定すること。
+	-->
+	<filter>
+		<filter-name>MultipartFilter</filter-name>
+		<filter-class>org.springframework.web.multipart.support.MultipartFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>MultipartFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- SpringSecurityのフィルター設定です -->
+	<filter>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSecurityFilterChain</filter-name> 
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+
+	<!-- Spring MVCの設定 -->
+	<servlet>
+		<servlet-name>spring_mvc_sample</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value></param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>spring_mvc_sample</servlet-name>
+		<url-pattern>*.html</url-pattern>
+	</servlet-mapping>	
+	
+	
+		
+	<!-- jspファイルの共通インクルード -->
+	<jsp-config>
+		<jsp-property-group>
+			<!-- パラメータを適用するURLパターン（必須） -->
+			<url-pattern>/WEB-INF/tiles/*</url-pattern>
+			<!-- 式言語を無視するか -->
+			<el-ignored>false</el-ignored>
+			<!-- スクリプティング要素を無効にするか -->
+			<scripting-invalid>false</scripting-invalid>
+			<!-- 各ページのヘッダとしてインクルードするファイル -->
+			<include-prelude>/WEB-INF/_header.jsp</include-prelude>
+		</jsp-property-group>
+	</jsp-config>
+	
+	<!-- 
+	　　エラー画面の指定（セキュリティのため、デフォルトのエラー画面を出さないようにする） 
+	　　Throwableのエラーページをコメントアウトしているのはデバッグしやすくするため。
+	　　実際にリリースするときには有効にする、
+	-->
+	<!--error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/WEB-INF/jsp/error/web-error.jsp</location>
+	</error-page-->
+	<error-page>
+		<error-code>400</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>401</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>402</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>403</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>405</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>406</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>407</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>408</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>409</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>410</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>411</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>412</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>413</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>414</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>415</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>416</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>417</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>501</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>502</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>503</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>504</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>505</error-code>
+		<location>/WEB-INF/jsp/error/status-err.jsp</location>
+	</error-page>
+</web-app>

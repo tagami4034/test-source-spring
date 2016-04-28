@@ -1,0 +1,43 @@
+<included>
+<!-- ログ外部定義のサンプルです。 
+　${catalina.home}/app-info/sampleの下にコピーして編集して使用してください。
+-->
+
+	<!-- eclipseで起動するか？それともtomcatで起動するか？
+	 true　・・・eclipseでWEBを起動する場合。コンソールにログを出力するようにします。
+	 false・・・eclipseを介さずにtomcatからWEBを起動する。ファイルにログを出力するようにします。
+	 ※このファイルの下の方でスイッチの記述をしています。
+	 -->
+	<property scope="context" name="log.start.on.eclipse" value="true" />
+	
+	<!-- 出力ファイル設定 -->
+	<property scope="context" name="log.dir" value="${catalina.home}/app-info/sample/logs" />
+	<property scope="context" name="log.sql" value="sql" />
+	
+	<!-- 出力フォーマットの設定 -->
+	<property scope="context" name="log.FILE_APP.pattern"
+		value="%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n" />
+	<property scope="context" name="log.FILE_APP_SQL.pattern"
+		value="%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n" />
+	<property scope="context" name="log.FILE_APP_CONVERT.pattern" 
+		value="%d INFO %X{req.path} %X{sec.username}%X{sec.roles} %X{MapFilterMsg}%nopex%n" />
+	
+	
+	<!-- ログ設定ファイルの読み込み。設定値によって読み込むファイルを変えています。 -->
+	<if condition='"true".contains(property("log.start.on.eclipse"))' >
+		<then>
+			<!-- コンソールのみにログ出力する設定を読み込む -->
+			<include optional="true" resource="/META-INF/log/logback-ConsoleConf.xml"/>
+		</then>
+		<else>
+			<!-- ファイルに出力する設定を読み込む -->
+			<include optional="true" resource="/META-INF/log/logback-FileConf.xml" />
+		</else>
+	</if>
+	
+	<!-- 上書きしてもよい-->
+	<!--root level="INFO">
+		<appender-ref ref="FILE_APP" />
+	</root-->
+	
+</included>

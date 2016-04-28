@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:p="http://www.springframework.org/schema/p"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop ="http://www.springframework.org/schema/aop"
+xmlns:tx  ="http://www.springframework.org/schema/tx"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+http://www.springframework.org/schema/mvc
+http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+
+	<!-- コントローラの読み込み -->
+	<context:component-scan base-package="com.sample.app.controller" />
+	<mvc:annotation-driven />
+
+	<!-- *.htmlの要求が来た場合に*.jspを実行するための設定。
+	　例えば"/error/test.html"にアクセスした場合、Controllerのメソッドが return "error/test";を返したのと同じ動作をする。
+	　つまり、複数のviewResolverをこの文字列で検索して、一番最初にマッチしたviewResolverでView処理がされる。
+	　ここではTilesのviewResolverが優先度(order)が高いが、"cust/*-*-*"もしくは"admin/*-*-*"の形式でないとマッチしないので、
+	　次のJstl　のviewResolverで引っかかる。すると、"/WEB-INF/jsp/error/test.jsp"を使用する。
+	　mvc:view-controllerで設定されたパスはControllerを介さずにviewResolverにパスを渡されるので、すべて公開された状態になる。
+	　つまりURLを直接記述されると閲覧される恐れがあるので、見られて困るjspファイルは"/WEB-INF/jsp/"配下には置いておかない。
+	 -->
+	<mvc:view-controller path="/*.html" />
+	<mvc:view-controller path="/error/*.html" />
+
+
+	<!-- ファイルアップロードのための設定（multipart）。
+	bean idは"filterMultipartResolver"にすること！！
+	もしくは、web.xmlに設定したMultipartFilterフィルタのinit-paramでbean名を指定すること。
+	 もし、Servlet3.0のマルチパート機能を使用したい場合は、以下のクラスではなく
+	org.springframework.web.multipart.support.StandardServletMultipartResolverを使用する。
+	Servlet3.0のマルチパートを使用する場合、Servlet3.0の機能で最大アップロードサイズなどを設定することに注意。
+	 -->
+	<bean id="filterMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="100000"/>
+	</bean>
+
+
+	<!-- Tilesの設定
+	　セキュリティのため、Jstl　のviewResolver　とは別のディレクトリにした。
+	 Jstl　のviewResolverは、mvc:view-controllerで指定したパスのjspが全て公開されてしまう。
+	-->
+	<bean id="tilesConfigurer"
+		class="org.springframework.web.servlet.view.tiles2.TilesConfigurer"
+		p:definitions="classpath:/META-INF/spring/web/tiles.xml" />
+
+	<!-- Tiles の　View Resolver
+	-->
+	<bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="order" value="1"/>
+		<property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView"/>
+	</bean>
+
+	<!-- Jstl　のviewResolver
+	Controllerを介さず、そのままjspを実行するURLパスのための設定。
+	-->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+		<property name="suffix" value=".jsp"/>
+		<property name="order" value="2"/>
+	</bean>
+
+
+	<!-- Declare the Interceptor -->
+	<mvc:interceptors>
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" p:paramName="locale" />
+	</mvc:interceptors>
+
+
+	<!-- Handler Adapter -->
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="webBindingInitializer">
+			<bean class="com.sample.app.controller.GlobalBindingInitializer"/>
+		</property>
+	</bean>
+
+
+
+	<!-- Declare the Resolver -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" >
+		<property name="defaultLocale" value="ja" />
+	</bean>
+
+	<!-- メッセージ -->
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource"
+		p:basenames="messages-spring"/>
+
+	<!-- 例外ハンドリング -->
+	<bean class="com.sample.app.controller.AppHandlerExceptionResolver" />
+
+
+
+</beans>

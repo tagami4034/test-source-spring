@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:p="http://www.springframework.org/schema/p"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:aop ="http://www.springframework.org/schema/aop"
+xmlns:tx  ="http://www.springframework.org/schema/tx"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+http://www.springframework.org/schema/mvc
+http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+
+
+	<!-- DBUnitのデータローダー -->
+	<bean id="fileLoader" class="org.dbunit.util.fileloader.XlsDataFileLoader">
+	</bean>
+
+	<!-- DB更新のため用意しておく。シーケンスの更新などを行う -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	
+	<!-- Data Source (例えばPostgres)-->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="org.postgresql.Driver"/>
+		<property name="url" value="${web.db.url}" />
+		<property name="username" value="${web.db.username}" />
+		<property name="password" value="${web.db.password}" />
+	</bean>
+	
+	<!-- トランザクションマネージャー -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<!-- トランザクションの開始位置の設定 -->
+	<aop:config proxy-target-class="true">
+		<aop:advisor pointcut="execution(* com.sample.app.business.service..*(..))" advice-ref="txAdvice" />
+	</aop:config>
+	<tx:advice id="txAdvice" >
+		<tx:attributes>
+			<tx:method name="find*" read-only="true" />
+			<tx:method name="obtain*" read-only="true" />
+			<tx:method name="*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+</beans>

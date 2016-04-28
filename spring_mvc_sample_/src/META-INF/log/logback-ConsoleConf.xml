@@ -1,0 +1,107 @@
+<included>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	<!-- フォーマットの例
+	%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n
+	 -->
+	 	<encoder>
+			<pattern>%d %level %X{req.path} %X{sec.username}%X{sec.roles} %m%n</pattern>
+		</encoder>
+		
+		<!--turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+			<Marker>MYBATIS</Marker>
+			<OnMatch>ACCEPT</OnMatch>
+		</turboFilter-->
+	</appender>
+	
+
+	<appender name="DEBUG_CONVERTER" class="ch.qos.logback.core.ConsoleAppender">
+	 	<encoder>
+			<pattern>%d INFO %X{req.path} %X{sec.username}%X{sec.roles} %X{MapFilterMsg}%nopex%n</pattern>
+		</encoder>
+		<!--
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">      
+			<evaluator>
+				<expression>
+				   return level == DEBUG &amp;&amp; message.contains("Creating new transaction");
+				</expression>
+			</evaluator>
+			<OnMismatch>DENY</OnMismatch>
+			<OnMatch>NEUTRAL</OnMatch>
+		</filter>
+		-->
+		<filter class="com.sampletool.common.log.MapFilter">
+			<ConvertMap>
+				org.springframework.jdbc.datasource.DataSourceTransactionManager:Creating new transaction=JDBCトランザクション開始
+				org.springframework.jdbc.datasource.DataSourceTransactionManager:Committing JDBC transaction=JDBCコミット
+				org.springframework.jdbc.datasource.DataSourceTransactionManager:Rolling back JDBC transaction=JDBCロールバック
+				org.springframework.security.web.access.ExceptionTranslationFilter:Access is denied (user is anonymous)=不正アクセス
+				org.springframework.security.web.access.ExceptionTranslationFilter:Access is denied (user is not anonymous)=アクセス不許可
+				org.springframework.security.web.csrf.CsrfFilter:Invalid CSRF token found=CSRFトークン不正
+			</ConvertMap>
+			<OnMismatch>DENY</OnMismatch>
+			<OnMatch>NEUTRAL</OnMatch>
+		</filter>
+	</appender>
+
+
+	<!-- Spring Tx commit/rollback
+	もしコミット・ロールバックのログを出したくない場合はコメントアウトしてください。
+	ログ出力の内容：
+	 Creating new transaction
+	 Committing JDBC transaction 
+	 Rolling back JDBC transaction 
+	-->
+	<logger name="org.springframework.jdbc.datasource.DataSourceTransactionManager" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="DEBUG_CONVERTER"/>
+	</logger>
+	
+	
+	<!-- Spring JDBCのSQLを出力する設定 -->
+	<logger name="org.springframework.jdbc.core.JdbcTemplate" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
+	</logger>
+	<logger name="org.springframework.jdbc.core.StatementCreatorUtils" additivity="false">
+		<level value="TRACE" />
+		<appender-ref ref="STDOUT"/>
+	</logger>
+	
+	<!-- MyBatis のSQLを出力する設定 
+	 TRACEにすると結果のレコードも表示する。
+	-->
+	<logger name="mybatis.sample" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT"/>
+	</logger>
+	<!-- 
+	<logger name="org.apache.ibatis" additivity="false" >
+		<level value="TRACE" />
+		<appender-ref ref="STDOUT"/>
+	</logger>
+	<logger name="org.mybatis" additivity="false" >
+		<level value="TRACE" />
+		<appender-ref ref="STDOUT"/>
+	</logger>
+	-->
+	
+	<!-- SpringSecurity のCSRF対策でトークンチェックのエラーを出力するための設定 
+	CSRF　-> org.springframework.security.web.csrf.CsrfFilter
+				"Invalid CSRF token found"　⇒トークンが不正
+	ACCESS DENY -> org.springframework.security.web.access.ExceptionTranslationFilter
+				"Access is denied (user is anonymous)" ⇒認証なしで認証要の画面にアクセス
+				"Access is denied (user is not anonymous)"　⇒認証はされているが許可のない画面にアクセス
+	-->
+	<logger name="org.springframework.security.web" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="DEBUG_CONVERTER"/>
+	</logger>
+	
+	
+	
+	<root level="INFO">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</included>

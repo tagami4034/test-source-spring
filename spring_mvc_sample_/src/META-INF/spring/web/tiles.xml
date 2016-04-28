@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+	"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+	"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+
+<tiles-definitions>
+
+	<!-- ベースのレイアウト(会員用) -->
+	<definition name="baseLayout" template="/WEB-INF/tiles/common/layout.jsp">
+		<put-attribute name="titleName" value="Home" />
+		<put-attribute name="header" value="/WEB-INF/tiles/common/header.jsp" />
+		<put-attribute name="body" value="/WEB-INF/tiles/common/body.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/tiles/common/footer.jsp" />
+	</definition>
+
+	<!-- エンドユーザ向けページ。
+	　nameはmvc:view-controllerとは重ならないパスにする。
+	　重なってしまうと、同じパスを指定された場合に以下のtilesのjspが起動してしまい、負荷がかかる。
+	　例えばmvc:view-controllerのpathに"/cust/*.html"や"/**.html"が設定されていると、
+	　"/cust/member-Edit-Input.html"にアクセスした場合に以下のtilesがマッチしてtiles/配下のjspが起動する。
+	　複雑なc:、 form:、などのタグが処理されるのでそこそこ負荷がかかるし、Modelが渡されずに処理されるので思わぬ動きをするかもしれない。
+	-->
+	<definition name="cust/*-*-*" extends="baseLayout">
+		<put-attribute name="titleName" value="{1}" />
+		<put-attribute name="titleFuncName" value="{2}" />
+		<put-attribute name="titleSubName" value="{3}" />
+		<put-attribute name="body" value="/WEB-INF/tiles/{1}-{2}-{3}.jsp" >
+		</put-attribute>
+	</definition>
+
+
+
+
+	<!-- ベースのレイアウト（管理者用） -->
+	<definition name="baseAdminLayout" template="/WEB-INF/tiles/common/admin-layout.jsp">
+		<put-attribute name="titleName" value="Home" />
+		<put-attribute name="header" value="/WEB-INF/tiles/common/header.jsp" />
+		<put-attribute name="body" value="/WEB-INF/tiles/common/body.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/tiles/common/footer.jsp" />
+	</definition>
+
+	<!-- 管理者向けのページ
+	　こちらもエンドユーザ向けのページと同様にパスが重ならないようにする。
+	 -->
+	<definition name="admin/*-*-*" extends="baseAdminLayout">
+		<put-attribute name="titleName" value="{1}" />
+		<put-attribute name="titleFuncName" value="{2}" />
+		<put-attribute name="titleSubName" value="{3}" />
+		<put-attribute name="body" value="/WEB-INF/tiles/{1}-{2}-{3}.jsp" >
+		</put-attribute>
+	</definition>
+
+	<definition name="zaiko/*-*-*" extends="baseLayout">
+		<put-attribute name="titleName" value="{1}" />
+		<put-attribute name="titleFuncName" value="{2}" />
+		<put-attribute name="titleSubName" value="{3}" />
+		<put-attribute name="body" value="/WEB-INF/tiles/{1}-{2}-{3}.jsp" >
+		</put-attribute>
+	</definition>
+
+</tiles-definitions>

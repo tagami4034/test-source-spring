@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:util="http://www.springframework.org/schema/util"
+ xmlns:aop="http://www.springframework.org/schema/aop"
+ xmlns:sec="http://www.springframework.org/schema/security"
+ xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/util
+           http://www.springframework.org/schema/util/spring-util-3.0.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+  http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+
+<!-- JSPタグでSpringSecurity式を使用したい場合に以下を定義する -->
+<bean id="webexpressionHandler"
+   class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler"/>
+
+
+ <!-- SpringSecurityのメイン設定
+  -->
+ <sec:http access-denied-page="/error/403.html" path-type="ant" auto-config="false"
+  access-decision-manager-ref="accessDecisionManager">
+	<!-- 認証なしで表示する画面の設定(これらを設定しないとどこにもアクセスできないWEBになります) -->
+	<sec:intercept-url pattern="/error/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+	<sec:intercept-url pattern="/login.html" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+	<sec:intercept-url pattern="/top.html" access="IS_AUTHENTICATED_FULLY"/>
+	<!-- 認証後（ログイン後）に表示する画面のロール設定 -->
+	<sec:intercept-url pattern="/admin/**" access="ROLE_ADMIN"/>
+	<sec:intercept-url pattern="/cust/**" access="ROLE_UPDATE"/>
+	<sec:intercept-url pattern="/zaiko/**" access="ROLE_ADMIN"/>
+	<sec:intercept-url pattern="/test/**" access="ROLE_NOBODY"/>
+
+	<!-- ログイン・ログアウト設定 -->
+	<sec:form-login login-page="/login.html" default-target-url="/top.html" always-use-default-target="false"
+	 authentication-failure-url="/login.html?error=true"/>
+	<sec:logout logout-url="/logout"  logout-success-url="/top.html" invalidate-session="true"/>
+	<sec:anonymous granted-authority="ROLE_ANONYMOUS"/>
+
+	<!-- CSRF対策用のトークンを発行することを宣言します（SprinSecurity3.2以降の機能です） -->
+	<sec:csrf request-matcher-ref="csrfTarget"/>
+
+	<!-- HTTPヘッダで可能なセキュリティ対策
+	　　ここで設定できる内容は基本的にはApacheの設定ファイルの記述でも解決可能なことです。
+	　　アプリ側で対策するか、Apache側で対策するかは決めの問題です。
+	  -->
+	<sec:headers>
+		<!-- クリックジャッキング対策 -->
+		<sec:frame-options policy="DENY" />
+	</sec:headers>
+ </sec:http>
+
+
+
+ <!--
+ CSRFトークンチェックを行う画面を指定する。できれば全てが望ましいが、ここでは完了画面だけにした 。
+ 注意点としてはURLのパス名のルールを決めておかないと以下のようなAntパス形式で指定できない。
+【補足】
+ログイン画面のCSRF対策はログイン後のコンテンツの内容によってはあまり意味のないものだが、念のためしておいた方がよいと思います。
+以下で設定しています（/j_spring_security_check）。
+ -->
+  	<bean id="csrfTarget" class="org.springframework.security.web.util.matcher.OrRequestMatcher">
+  		<constructor-arg>
+  			<list>
+			  	<bean class="org.springframework.security.web.util.matcher.AntPathRequestMatcher">
+			  		<constructor-arg value="/**/transactfinish.html" />
+			  	</bean>
+			  	<bean class="org.springframework.security.web.util.matcher.AntPathRequestMatcher">
+			  		<constructor-arg value="/j_spring_security_check" />
+			  	</bean>
+		  	</list>
+  		</constructor-arg>
+  	</bean>
+
+	 <!-- 認証処理 -->
+	 <sec:authentication-manager>
+		<!-- 認証手形発行所 -->
+		<sec:authentication-provider>
+			<sec:jdbc-user-service data-source-ref="dataSource"
+				users-by-username-query="
+					SELECT login_id, login_pw, 'true'
+         			FROM t_member
+         			WHERE login_id=?"
+				authorities-by-username-query="
+					SELECT login_id, role
+			        FROM t_member
+			        WHERE login_id=?"
+			/>
+		</sec:authentication-provider>
+	 </sec:authentication-manager>
+
+    <bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+       <property name="decisionVoters">
+        <list>
+          <bean class="org.springframework.security.access.vote.AuthenticatedVoter"/>
+          <bean class="org.springframework.security.access.vote.RoleVoter"/>
+          <ref bean="roleVoter"/>
+        </list>
+       </property>
+    </bean>
+
+	<!-- ロール設定 -->
+	<bean id="roleVoter" class="org.springframework.security.access.vote.RoleHierarchyVoter">
+	    <constructor-arg>
+			<bean class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
+			    <property name="hierarchy">
+			        <value>
+			            ROLE_ADMIN > ROLE_READ
+			            ROLE_ADMIN > ROLE_UPDATE
+			        </value>
+			    </property>
+			</bean>
+	    </constructor-arg>
+	</bean>
+
+</beans>

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mybatis.sample.Product" >
+
+	<!-- 条件include(selectにもupdateにも使用できる) -->
+	<sql id="selectWhere">
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'procd') and procd != null">
+			AND procd = #{procd}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'name') and name != null">
+			AND name = #{name}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'nameBW') and nameBW != null">
+			<!-- 正規表現を使ってlikeエスケープする -->
+			AND name like regexp_replace(#{nameBW}, '([\\%_])', '\\\1', 'g') || '%'
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tankaFrom') and tankaFrom > 0">
+			AND tanka >= #{tankaFrom}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tankaTo') and tankaTo > 0">
+			<![CDATA[
+				AND tanka <= #{tankaTo}
+			]]>
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tanka') and tanka > 0">
+			<![CDATA[
+				AND tanka = #{tanka}
+			]]>
+		</if>
+		<!-- <if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'loginId') and loginId != null">
+			AND login_id = #{loginId}
+		</if> -->
+	</sql>
+
+	<!-- 条件include(selectにもupdateにも使用できる) -->
+	<sql id="selectZaikoWhere">
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'procd') and procd != null">
+			AND pro_m.procd = #{procd}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'name') and name != null">
+			AND pro_m.name = #{name}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'proClass') and proClass != null">
+			AND pro_m.Class = #{proClass}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'nameBW') and nameBW != null">
+			<!-- 正規表現を使ってlikeエスケープする -->
+			AND pro_m.name like regexp_replace(#{nameBW}, '([\\%_])', '\\\1', 'g') || '%'
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tankaFrom') and tankaFrom > 0">
+			AND pro_m.tanka >= #{tankaFrom}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tankaTo') and tankaTo > 0">
+			<![CDATA[
+				AND pro_m.tanka <= #{tankaTo}
+			]]>
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tanka') and tanka > 0">
+			<![CDATA[
+				AND pro_m.tanka = #{tanka}
+			]]>
+		</if>
+		<!-- <if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'loginId') and loginId != null">
+			AND login_id = #{loginId}
+		</if> -->
+	</sql>
+
+	<!-- 条件include(selectにもupdateにも使用できる) -->
+	<sql id="selectzWhere">
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'procd') and procd != null">
+			AND procd = #{procd}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'name') and name != null">
+			AND name = #{name}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'nameBW') and nameBW != null">
+			<!-- 正規表現を使ってlikeエスケープする -->
+			AND name like regexp_replace(#{nameBW}, '([\\%_])', '\\\1', 'g') || '%'
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tankaFrom') and tankaFrom > 0">
+			AND tanka >= #{tankaFrom}
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'tankaTo') and tankaTo > 0">
+			<![CDATA[
+				AND tanka <= #{tankaTo}
+			]]>
+		</if>
+		<if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'kazu') and kazu > 0">
+			<![CDATA[
+				AND kazu = #{kazu}
+			]]>
+		</if>
+		<!-- <if test="!@com.sampletool.common.OgnlUtils@isEmpty(_parameter, 'loginId') and loginId != null">
+			AND login_id = #{loginId}
+		</if> -->
+	</sql>
+
+
+
+	<!-- select用のフィールドindlude
+	<sql id="selectFileds">
+		id as id,
+		name as name,
+		age as age,
+		login_id as loginId,
+		login_pw as loginPw,
+		role as role,
+		up_date as upDate,
+		version as version
+	</sql> -->
+
+	<!-- select用のフィールドindlude -->
+	<sql id="selectFileds">
+		procd as procd,
+		class as proClass,
+		name as name,
+		tanka as tanka,
+		credt as credt,
+		upddt as upDate,
+		opapi as opapi
+	</sql>
+
+	<!--  商品＆在庫検索用selecフィールドinclude -->
+	<sql id="selectProZaikoFileds">
+		pro_m.procd as procd,
+		pro_m.class as proClass,
+		pro_m.name as name,
+		pro_m.tanka as tanka,
+		pro_m.credt as credt,
+		pro_m.upddt as upddt,
+		pro_m.opapi as opapi,
+		zaik_m.kazu as kazu
+	</sql>
+
+	<!-- 在庫検索用selectフィールドinclude -->
+	<sql id="selectZaikoFileds">
+		procd as procd,
+		name as name,
+		kazu as kazu,
+		credt as credt,
+		upddt as upDate,
+		opapi as opapi
+	</sql>
+
+
+	<!--更新用フィールドinclude -->
+	<sql id="updateFileds">
+		name=#{name},
+		class=#{proClass},
+		tanka=#{tanka},
+		upddt=#{upDate}
+	</sql>
+
+	<!--更新用フィールドinclude -->
+	<sql id="updateZaikoFileds">
+		kazu=#{kazu}
+	</sql>
+
+	<!-- プライマリーキーで検索するselect -->
+	<select id="obtain" resultType="Product" parameterType="String">
+		select
+			<include refid="selectFileds"/>
+		from pro_m
+		where
+			procd = #{procd}
+	</select>
+
+	<!-- プライマリーキーで検索するselect -->
+	<select id="obtainZaiko" resultType="Product" parameterType="String">
+		select
+			<include refid="selectZaikoFileds"/>
+		from zaik_m
+		where
+			procd = #{procd}
+	</select>
+
+	<!-- join -->
+	<sql id="innerjoin">
+		inner join zaik_m
+		on zaik_m.procd=pro_m.procd
+	</sql>
+
+
+
+	<!-- 検索キーで検索するselect -->
+	<select id="find" resultType="Product">
+		select
+			<include refid="selectFileds"/>
+		from pro_m
+
+		<where>
+			<include refid="selectWhere"/>
+		</where>
+
+		<if test="orderBy != null">
+			<foreach collection="orderBy" item="_col" separator="," open="order by" >
+				<choose>
+					<when test="_col ==  @com.sample.app.business.model.ProductSearchKeys@ORDER_PROCD"> procd</when>
+					<when test="_col == -@com.sample.app.business.model.ProductSearchKeys@ORDER_PROCD"> procd desc</when>
+					<when test="_col ==  @com.sample.app.business.model.ProductSearchKeys@ORDER_TANKA"> tanka</when>
+					<when test="_col == -@com.sample.app.business.model.ProductSearchKeys@ORDER_TANKA"> tanka desc</when>
+					<when test="_col ==  @com.sample.app.business.model.ProductSearchKeys@ORDER_NAME"> name</when>
+					<when test="_col == -@com.sample.app.business.model.ProductSearchKeys@ORDER_NAME"> name desc</when>
+				</choose>
+			</foreach>
+		</if>
+
+		<include refid="Cmn.searchKeyPage"/>
+		<include refid="Cmn.forUpdate"/>
+	</select>
+
+	<!-- 検索キーで検索する在庫select -->
+	<select id="prozaikofind" resultType="Product">
+		select
+			<include refid="selectProZaikoFileds"/>
+		from pro_m
+
+		<include refid="innerjoin"/>
+
+		<where>
+			<include refid="selectZaikoWhere"/>
+		</where>
+
+		<if test="orderBy != null">
+			<foreach collection="orderBy" item="_col" separator="," open="order by" >
+				<choose>
+					<when test="_col ==  @com.sample.app.business.model.ProductSearchKeys@ORDER_PROCD"> pro_m.procd</when>
+					<when test="_col == -@com.sample.app.business.model.ProductSearchKeys@ORDER_PROCD"> pro_m.procd desc</when>
+					<when test="_col ==  @com.sample.app.business.model.ProductSearchKeys@ORDER_TANKA"> tanka</when>
+					<when test="_col == -@com.sample.app.business.model.ProductSearchKeys@ORDER_TANKA"> tanka desc</when>
+					<when test="_col ==  @com.sample.app.business.model.ProductSearchKeys@ORDER_NAME"> name</when>
+					<when test="_col == -@com.sample.app.business.model.ProductSearchKeys@ORDER_NAME"> name desc</when>
+				</choose>
+			</foreach>
+		</if>
+
+		<include refid="Cmn.searchKeyPage"/>
+		<include refid="Cmn.forUpdate"/>
+	</select>
+
+
+	<!-- 検索キーで検索し、件数だけ返す -->
+	<select id="count" resultType="int">
+		select
+			count(*)
+		from pro_m
+
+		<where>
+			<include refid="selectWhere"/>
+		</where>
+	</select>
+
+	<!-- Productを新規登録するinsert。idも新規作成し、オブジェクトに設定される。 -->
+	<insert id="insert" parameterType="Product" >
+		insert into pro_m(procd, class, name, tanka, credt, upddt, opapi)
+		values(#{procd}, #{class}, #{name}, #{tanka}, #{credt}, #{upddt}, #{opapi})
+	</insert>
+
+
+	<!-- Productを更新するupdate。 -->
+	<update id="update" parameterType="Product">
+		update pro_m
+		set
+			<include refid="updateFileds"/>
+		where
+			procd = #{procd}
+			<!-- 楽観的ロックのためバージョンが一致するものを更新 -->
+	</update>
+
+	<!-- Productを更新するupdate。 -->
+	<update id="zaikoUpdate" parameterType="Product">
+		update zaik_m
+		set
+			<include refid="updateZaikoFileds"/>
+		where
+			procd = #{procd}
+			<!-- 楽観的ロックのためバージョンが一致するものを更新 -->
+	</update>
+
+</mapper>
